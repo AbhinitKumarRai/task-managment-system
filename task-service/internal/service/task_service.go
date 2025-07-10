@@ -34,6 +34,10 @@ func (s *TaskService) Delete(id, userId int) error {
 	return s.taskManager.DeleteTask(id, userId)
 }
 
+func (s *TaskService) DeleteAllTasksOfUser(userId int) {
+	s.taskManager.DeleteAllTaskOfUser(userId)
+}
+
 func (s *TaskService) List(userId, page, limit int, status model.TaskStatus, sortByDueDate bool) ([]model.Task, error) {
 	return s.taskManager.ListTasksOfUser(userId, page, limit, status, sortByDueDate)
 }

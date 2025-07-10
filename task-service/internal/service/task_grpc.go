@@ -62,3 +62,9 @@ func (s *TaskGRPCServer) ListTasks(ctx context.Context, req *taskPb.ListTasksReq
 	}
 	return &taskPb.ListTasksResponse{Tasks: protoTasks}, nil
 }
+
+func (s *TaskGRPCServer) DeleteAllTaskOfUser(ctx context.Context, req *taskPb.DeleteAllTaskOfUserRequest) (*taskPb.DeleteAllTaskOfUserResponse, error) {
+	s.svc.DeleteAllTasksOfUser(int(req.UserId))
+
+	return &taskPb.DeleteAllTaskOfUserResponse{}, nil
+}
