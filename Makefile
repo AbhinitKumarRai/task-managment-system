@@ -1,3 +1,9 @@
+up:
+	docker-compose up --build -d
+
+down:
+	docker-compose down 
+	
 PROTO = proto/task_service.proto
 
 generate_proto:

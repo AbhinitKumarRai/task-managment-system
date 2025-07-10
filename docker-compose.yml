@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+
+  task-service:
+    build: ./task-service
+    environment:
+      PORT: 8081
+      GRPC_PORT: 50051
+    ports:
+      - "8081:8081"
