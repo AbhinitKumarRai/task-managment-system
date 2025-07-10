@@ -1,0 +1,3 @@
+module github.com/AbhinitKumarRai/task-service
+
+go 1.24.1
