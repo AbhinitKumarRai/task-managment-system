@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package task;
+
+option go_package = "github.com/your-org/shared-proto/;task";
+
+import "google/protobuf/timestamp.proto";
+
+enum TaskStatus {
+    TASK_STATUS_NO_STATUS = 0;
+    TASK_STATUS_NOT_STARTED = 1;
+    TASK_STATUS_STARTED = 2;
+    TASK_STATUS_PENDING = 3;
+    TASK_STATUS_IS_TRIGGERED = 4;
+    TASK_STATUS_NOT_TRIGGERED = 5;
+    TASK_STATUS_COMPLETED = 6;
+    TASK_STATUS_IN_PROGRESS = 7;
+  }
+  
+
+message Task {
+    int32 id = 1;
+    string title = 2;
+    string description = 3;
+    int32 user_id = 4;
+    TaskStatus status = 5;
+    google.protobuf.Timestamp created_at = 6;
+    google.protobuf.Timestamp updated_at = 7;
+    google.protobuf.Timestamp trigger_at = 8;
+    bool triggered = 9;
+}
+
+message CreateTaskRequest {
+  Task task = 1;
+}
+
+message CreateTaskResponse {
+}
+
+message GetTaskRequest {
+  int32 id = 1;
+  int32 user_id = 2;
+}
+
+message GetTaskResponse {
+  Task task = 1;
+}
+
+message UpdateTaskRequest {
+  Task updated_task = 1;
+}
+
+message UpdateTaskResponse {
+}
+
+message DeleteTaskRequest {
+  int32 id = 1;
+  int32 user_id = 2;
+}
+
+message DeleteTaskResponse {
+}
+
+message DeleteAllTaskOfUserRequest {
+    int32 user_id = 1;
+  }
+  
+  message DeleteAllTaskOfUserResponse {
+  }
+  
+
+message ListTasksRequest {
+  int32 page = 1;
+  int32 limit = 2;
+  int32 user_id = 3;
+  TaskStatus status = 4;
+  bool sort_by_due_date = 5;
+}
+
+message ListTasksResponse {
+  repeated Task tasks = 1;
+}
+
+service TaskService {
+  rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse);
+  rpc GetTask(GetTaskRequest) returns (GetTaskResponse);
+  rpc UpdateTask(UpdateTaskRequest) returns (UpdateTaskResponse);
+  rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse);
+  rpc DeleteAllTaskOfUser(DeleteAllTaskOfUserRequest) returns (DeleteAllTaskOfUserResponse);
+  rpc ListTasks(ListTasksRequest) returns (ListTasksResponse);
+}
