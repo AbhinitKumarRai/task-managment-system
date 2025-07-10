@@ -624,7 +624,7 @@ type ListTasksRequest struct {
 	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
 	UserId        int32                  `protobuf:"varint,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Status        TaskStatus             `protobuf:"varint,4,opt,name=status,proto3,enum=task.TaskStatus" json:"status,omitempty"`
-	SortByDueDate bool                   `protobuf:"varint,5,opt,name=sort_by_due_date,json=sortByDueDate,proto3" json:"sort_by_due_date,omitempty"`
+	SortByDate    bool                   `protobuf:"varint,5,opt,name=sort_by_date,json=sortByDate,proto3" json:"sort_by_date,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -687,9 +687,9 @@ func (x *ListTasksRequest) GetStatus() TaskStatus {
 	return TaskStatus_TASK_STATUS_NO_STATUS
 }
 
-func (x *ListTasksRequest) GetSortByDueDate() bool {
+func (x *ListTasksRequest) GetSortByDate() bool {
 	if x != nil {
-		return x.SortByDueDate
+		return x.SortByDate
 	}
 	return false
 }
@@ -776,13 +776,14 @@ const file_proto_task_service_proto_rawDesc = "" +
 	"\x12DeleteTaskResponse\"5\n" +
 	"\x1aDeleteAllTaskOfUserRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x05R\x06userId\"\x1d\n" +
-	"\x1bDeleteAllTaskOfUserResponse\"\xa8\x01\n" +
+	"\x1bDeleteAllTaskOfUserResponse\"\xa1\x01\n" +
 	"\x10ListTasksRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x17\n" +
 	"\auser_id\x18\x03 \x01(\x05R\x06userId\x12(\n" +
-	"\x06status\x18\x04 \x01(\x0e2\x10.task.TaskStatusR\x06status\x12'\n" +
-	"\x10sort_by_due_date\x18\x05 \x01(\bR\rsortByDueDate\"5\n" +
+	"\x06status\x18\x04 \x01(\x0e2\x10.task.TaskStatusR\x06status\x12 \n" +
+	"\fsort_by_date\x18\x05 \x01(\bR\n" +
+	"sortByDate\"5\n" +
 	"\x11ListTasksResponse\x12 \n" +
 	"\x05tasks\x18\x01 \x03(\v2\n" +
 	".task.TaskR\x05tasks*\xeb\x01\n" +

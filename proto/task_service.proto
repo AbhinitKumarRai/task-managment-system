@@ -74,7 +74,7 @@ message ListTasksRequest {
   int32 limit = 2;
   int32 user_id = 3;
   TaskStatus status = 4;
-  bool sort_by_due_date = 5;
+  bool sort_by_date = 5;
 }
 
 message ListTasksResponse {

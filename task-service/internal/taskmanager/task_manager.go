@@ -36,7 +36,7 @@ func (m *TaskManager) getUserLock(userID int) *sync.RWMutex {
 	return lock
 }
 
-func (m *TaskManager) Create(task model.Task) error {
+func (m *TaskManager) Create(task *model.Task) error {
 	userlock := m.getUserLock(task.UserID)
 	userlock.Lock()
 	defer userlock.Unlock()
@@ -49,7 +49,7 @@ func (m *TaskManager) Create(task model.Task) error {
 	if _, ok := m.tasksByUserId[task.UserID]; !ok {
 		m.tasksByUserId[task.UserID] = make(map[int]*model.Task)
 	}
-	m.tasksByUserId[task.UserID][task.ID] = &task
+	m.tasksByUserId[task.UserID][task.ID] = task
 
 	return nil
 }
@@ -69,12 +69,16 @@ func (m *TaskManager) GetTaskByID(id, userId int) (model.Task, error) {
 	return model.Task{}, fmt.Errorf("user not found for id: %d", userId)
 }
 
-func (m *TaskManager) Update(id int, update model.Task) error {
+func (m *TaskManager) Update(update model.Task) error {
 	userlock := m.getUserLock(update.UserID)
 	userlock.Lock()
 	defer userlock.Unlock()
+
+	if update.ID == 0 || update.UserID == 0 {
+		return fmt.Errorf("user id or task id cannot be empty")
+	}
 	if taskList, ok := m.tasksByUserId[update.UserID]; ok {
-		if task, ok := taskList[id]; ok {
+		if task, ok := taskList[update.ID]; ok {
 			if update.Description != "" {
 				task.Description = update.Description
 			}
@@ -83,17 +87,17 @@ func (m *TaskManager) Update(id int, update model.Task) error {
 				task.Status = update.Status
 			}
 
-			if update.TriggerAt != nil {
+			if update.TriggerAt.IsZero() {
 				task.TriggerAt = update.TriggerAt
 			}
 
 			task.UpdatedAt = time.Now()
-			m.tasksByUserId[update.UserID][id] = task
+			m.tasksByUserId[update.UserID][update.ID] = task
 
 			return nil
 		}
 
-		return fmt.Errorf("task with id %d doesnot belong to user %d", id, update.UserID)
+		return fmt.Errorf("task with id %d doesnot belong to user %d", update.ID, update.UserID)
 	}
 	return fmt.Errorf("user not found for id: %d", update.UserID)
 }
@@ -150,35 +154,4 @@ func (m *TaskManager) ListTasksOfUser(userId, page, limit int, status model.Task
 	}
 
 	return filtered, fmt.Errorf("user not found for id: %d", userId)
-}
-
-// ListScheduledDue returns tasks with TriggerAt <= now and not Triggered
-func (m *TaskManager) ListScheduledDue(userId int, expectedTime time.Time) ([]model.Task, error) {
-	userlock := m.getUserLock(userId)
-	userlock.RLock()
-	defer userlock.RUnlock()
-
-	var due []model.Task
-	if taskList, ok := m.tasksByUserId[userId]; ok {
-		for _, task := range taskList {
-			if task.TriggerAt != nil && !task.Triggered && task.TriggerAt.Before(expectedTime.Add(1*time.Second)) {
-				due = append(due, *task)
-			}
-		}
-		return due, nil
-	}
-
-	return due, fmt.Errorf("user not found for id: %d", userId)
-}
-
-// MarkTriggered sets Triggered=true for a task
-func (m *TaskManager) MarkTriggered(id, userId int) {
-	userlock := m.getUserLock(userId)
-	userlock.Lock()
-	defer userlock.Unlock()
-	if taskList, ok := m.tasksByUserId[userId]; ok {
-		if _, ok := taskList[id]; ok {
-			m.tasksByUserId[userId][id].Triggered = true
-		}
-	}
 }

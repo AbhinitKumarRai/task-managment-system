@@ -23,6 +23,6 @@ type Task struct {
 	Status      TaskStatus `json:"status"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`
-	TriggerAt   *time.Time `json:"trigger_at,omitempty"`
+	TriggerAt   time.Time  `json:"trigger_at,omitempty"`
 	Triggered   bool       `json:"triggered"`
 }
