@@ -8,6 +8,7 @@ import (
 )
 
 type TaskGRPCServer struct {
+	taskPb.UnimplementedTaskServiceServer
 	svc *TaskService
 }
 

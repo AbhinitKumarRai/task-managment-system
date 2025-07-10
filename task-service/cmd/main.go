@@ -1,45 +1,33 @@
 package main
 
-// import (
-// 	"log"
-// 	"os"
-// 	"strings"
+import (
+	"log"
+	"net"
 
-// 	"github.com/AbhinitKumarRai/task-service/internal/handler"
-// 	"github.com/AbhinitKumarRai/task-service/internal/repository"
-// 	"github.com/AbhinitKumarRai/task-service/internal/service"
-// 	"github.com/gin-gonic/gin"
-// 	"github.com/joho/godotenv"
-// 	"github.com/segmentio/kafka-go"
-// )
+	"github.com/AbhinitKumarRai/task-service/internal/service"
+	"github.com/AbhinitKumarRai/task-service/internal/taskmanager"
+	taskPb "github.com/AbhinitKumarRai/task-service/proto"
+	"github.com/joho/godotenv"
+	"google.golang.org/grpc"
+)
 
-// func main() {
-// 	_ = godotenv.Load()
+func main() {
+	_ = godotenv.Load()
 
-// 	repo := repository.NewTaskRepository()
+	taskManager := taskmanager.NewTaskManager()
 
-// 	// Kafka writer setup
-// 	var kafkaW *kafka.Writer
-// 	brokers := os.Getenv("KAFKA_BROKERS")
-// 	topic := os.Getenv("KAFKA_TOPIC")
-// 	if brokers != "" && topic != "" {
-// 		kafkaW = &kafka.Writer{
-// 			Addr:  kafka.TCP(strings.Split(brokers, ",")...),
-// 			Topic: topic,
-// 		}
-// 		log.Printf("Task Service: Kafka producer enabled for topic %s", topic)
-// 	}
+	taskService := service.NewTaskService(taskManager)
 
-// 	svc := service.NewTaskService(repo, kafkaW)
-// 	handler := handler.NewTaskHandler(svc)
+	grpcServer := grpc.NewServer()
+	taskPb.RegisterTaskServiceServer(grpcServer, service.NewTaskGRPCServer(taskService))
 
-// 	r := gin.Default()
-// 	handler.RegisterRoutes(r)
-
-// 	port := os.Getenv("PORT")
-// 	if port == "" {
-// 		port = "8081"
-// 	}
-// 	log.Printf("Task Service running on :%s", port)
-// 	r.Run(":" + port)
-// }
+	listenAddr := ":50051"
+	lis, err := net.Listen("tcp", listenAddr)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	log.Printf("Task Service gRPC server running on %s", listenAddr)
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+}
