@@ -18,11 +18,11 @@ func NewTaskGRPCServer(svc *TaskService) *TaskGRPCServer {
 
 func (s *TaskGRPCServer) CreateTask(ctx context.Context, req *taskPb.CreateTaskRequest) (*taskPb.CreateTaskResponse, error) {
 	task := utils.ProtoToModelTask(req.Task)
-	err := s.svc.Create(task)
+	createdTask, err := s.svc.Create(task)
 	if err != nil {
 		return &taskPb.CreateTaskResponse{}, err
 	}
-	return &taskPb.CreateTaskResponse{}, nil
+	return &taskPb.CreateTaskResponse{TaskCreated: utils.ModelToProtoTask(&createdTask)}, nil
 }
 
 func (s *TaskGRPCServer) GetTask(ctx context.Context, req *taskPb.GetTaskRequest) (*taskPb.GetTaskResponse, error) {
@@ -65,7 +65,7 @@ func (s *TaskGRPCServer) ListTasks(ctx context.Context, req *taskPb.ListTasksReq
 }
 
 func (s *TaskGRPCServer) DeleteAllTaskOfUser(ctx context.Context, req *taskPb.DeleteAllTaskOfUserRequest) (*taskPb.DeleteAllTaskOfUserResponse, error) {
-	s.svc.DeleteAllTasksOfUser(int(req.UserId))
+	err := s.svc.DeleteAllTasksOfUser(int(req.UserId))
 
-	return &taskPb.DeleteAllTaskOfUserResponse{}, nil
+	return &taskPb.DeleteAllTaskOfUserResponse{}, err
 }

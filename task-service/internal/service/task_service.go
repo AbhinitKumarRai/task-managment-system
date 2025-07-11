@@ -14,12 +14,8 @@ func NewTaskService(taskManager *tm.TaskManager) *TaskService {
 	return ts
 }
 
-func (s *TaskService) Create(task *model.Task) error {
-	err := s.taskManager.Create(task)
-	if err != nil {
-		return err
-	}
-	return nil
+func (s *TaskService) Create(task *model.Task) (model.Task, error) {
+	return s.taskManager.Create(task)
 }
 
 func (s *TaskService) GetByID(id, userId int) (model.Task, error) {
@@ -34,8 +30,8 @@ func (s *TaskService) Delete(id, userId int) error {
 	return s.taskManager.DeleteTask(id, userId)
 }
 
-func (s *TaskService) DeleteAllTasksOfUser(userId int) {
-	s.taskManager.DeleteAllTaskOfUser(userId)
+func (s *TaskService) DeleteAllTasksOfUser(userId int) error{
+	return s.taskManager.DeleteAllTaskOfUser(userId)
 }
 
 func (s *TaskService) List(userId, page, limit int, status model.TaskStatus, sortByDueDate bool) ([]model.Task, error) {
