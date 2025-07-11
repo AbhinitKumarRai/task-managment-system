@@ -10,14 +10,15 @@ import (
 )
 
 type TaskManager struct {
-	globalLock     sync.Mutex
+	globalLock     *sync.Mutex
 	tasksByUserId  map[int]map[int]*model.Task
 	userLevelLocks map[int]*sync.RWMutex
 	taskIDCounter  int
 }
 
-func NewTaskRepository() *TaskManager {
+func NewTaskManager() *TaskManager {
 	return &TaskManager{
+		globalLock:     &sync.Mutex{},
 		tasksByUserId:  make(map[int]map[int]*model.Task),
 		userLevelLocks: make(map[int]*sync.RWMutex),
 		taskIDCounter:  1,
@@ -36,7 +37,7 @@ func (m *TaskManager) getUserLock(userID int) *sync.RWMutex {
 	return lock
 }
 
-func (m *TaskManager) Create(task *model.Task) error {
+func (m *TaskManager) Create(task *model.Task) (model.Task, error) {
 	userlock := m.getUserLock(task.UserID)
 	userlock.Lock()
 	defer userlock.Unlock()
@@ -49,9 +50,12 @@ func (m *TaskManager) Create(task *model.Task) error {
 	if _, ok := m.tasksByUserId[task.UserID]; !ok {
 		m.tasksByUserId[task.UserID] = make(map[int]*model.Task)
 	}
+
+	task.CreatedAt = time.Now()
+	task.UpdatedAt = time.Now()
 	m.tasksByUserId[task.UserID][task.ID] = task
 
-	return nil
+	return *task, nil
 }
 
 func (m *TaskManager) GetTaskByID(id, userId int) (model.Task, error) {
@@ -117,13 +121,15 @@ func (m *TaskManager) DeleteTask(id, userId int) error {
 	return fmt.Errorf("user not found for id: %d", userId)
 }
 
-func (m *TaskManager) DeleteAllTaskOfUser(userId int) {
+func (m *TaskManager) DeleteAllTaskOfUser(userId int) error {
 	m.globalLock.Lock()
 	defer m.globalLock.Unlock()
 
 	delete(m.tasksByUserId, userId)
 
 	delete(m.userLevelLocks, userId)
+
+	return nil
 }
 
 func (m *TaskManager) ListTasksOfUser(userId, page, limit int, status model.TaskStatus, sortByDate bool) ([]model.Task, error) {
@@ -154,4 +160,34 @@ func (m *TaskManager) ListTasksOfUser(userId, page, limit int, status model.Task
 	}
 
 	return filtered, fmt.Errorf("user not found for id: %d", userId)
+}
+
+// ListScheduledDue returns tasks with TriggerAt <= now and not Triggered
+func (m *TaskManager) ListScheduledDue(expectedTime time.Time) []model.Task {
+
+	var due []model.Task
+	for userId, taskList := range m.tasksByUserId {
+		userlock := m.getUserLock(userId)
+		userlock.RLock()
+		defer userlock.RUnlock()
+		for _, task := range taskList {
+			if !task.TriggerAt.IsZero() && !task.Triggered && task.TriggerAt.Before(expectedTime.Add(1*time.Second)) {
+				due = append(due, *task)
+			}
+		}
+	}
+
+	return due
+}
+
+// MarkTriggered sets Triggered=true for a task
+func (m *TaskManager) MarkTriggered(id, userId int) {
+	userlock := m.getUserLock(userId)
+	userlock.Lock()
+	defer userlock.Unlock()
+	if taskList, ok := m.tasksByUserId[userId]; ok {
+		if _, ok := taskList[id]; ok {
+			m.tasksByUserId[userId][id].Triggered = true
+		}
+	}
 }

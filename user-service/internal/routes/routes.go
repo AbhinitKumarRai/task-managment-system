@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"net/http"
-
 	"github.com/AbhinitKumarRai/user-service/internal/handler"
 	"github.com/AbhinitKumarRai/user-service/internal/service"
 	"github.com/AbhinitKumarRai/user-service/pkg/grpcclient"
@@ -12,11 +10,6 @@ import (
 
 func RegisterRoutes(userService *service.UserService, taskClient *grpcclient.TaskGRPCClient) *mux.Router {
 	router := mux.NewRouter()
-
-	// --- Health Check ---
-	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("OK"))
-	}).Methods("GET")
 
 	// --- User Handlers ---
 	userHandler := handler.NewUserHandler(userService, taskClient)
@@ -38,11 +31,11 @@ func RegisterRoutes(userService *service.UserService, taskClient *grpcclient.Tas
 	// Protected Task Routes
 	protectedTask := router.PathPrefix("/task").Subrouter()
 	protectedTask.Use(middleware.AuthMiddleware)
-	protectedTask.HandleFunc("", taskHandler.List).Methods("GET")      // /task?status=...
-	protectedTask.HandleFunc("", taskHandler.Create).Methods("POST")   // /task
-	protectedTask.HandleFunc("", taskHandler.GetByID).Methods("GET")   // /task?id=...
-	protectedTask.HandleFunc("", taskHandler.Update).Methods("PUT")    // /task?id=...
-	protectedTask.HandleFunc("", taskHandler.Delete).Methods("DELETE") // /task?id=...
+	protectedTask.HandleFunc("/list_all_tasks", taskHandler.List).Methods("GET") // /task?status=...
+	protectedTask.HandleFunc("/create", taskHandler.Create).Methods("POST")      // /task
+	protectedTask.HandleFunc("", taskHandler.GetByID).Methods("GET")             // /task?id=...
+	protectedTask.HandleFunc("/update", taskHandler.Update).Methods("POST")      // /task?id=...
+	protectedTask.HandleFunc("", taskHandler.Delete).Methods("DELETE")           // /task?id=...
 
 	return router
 }

@@ -1,9 +1,9 @@
-up:
+all:
 	docker-compose up --build -d
 
-down:
+kill:
 	docker-compose down 
-	
+
 PROTO = proto/task_service.proto
 
 generate_proto:
